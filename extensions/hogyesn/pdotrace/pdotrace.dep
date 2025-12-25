@@ -85,4 +85,5 @@ pdotrace.lo: /extensions/hogyesn/pdotrace/pdotrace.c \
  /usr/local/php-bin/DEBUG/include/php/Zend/zend_constants.h \
  /usr/local/php-bin/DEBUG/include/php/main/php_reentrancy.h \
  /usr/local/php-bin/DEBUG/include/php/ext/standard/info.h \
- /extensions/hogyesn/pdotrace/php_pdotrace.h
+ /extensions/hogyesn/pdotrace/php_pdotrace.h \
+ /extensions/hogyesn/pdotrace/pdotrace_arginfo.h

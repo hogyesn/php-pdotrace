@@ -7,6 +7,15 @@
 #include "php.h"
 #include "ext/standard/info.h"
 #include "php_pdotrace.h"
+#include "pdotrace_arginfo.h"
+
+/* Module globals */
+ZEND_DECLARE_MODULE_GLOBALS(pdotrace)
+
+/* INI entries */
+PHP_INI_BEGIN()
+    STD_PHP_INI_ENTRY("pdotrace.log_file_path", "/tmp/pdotrace.log", PHP_INI_SYSTEM, OnUpdateString, log_file_path, zend_pdotrace_globals, pdotrace_globals)
+PHP_INI_END()
 
 /* For compatibility with older PHP versions */
 #ifndef ZEND_PARSE_PARAMETERS_NONE
@@ -15,6 +24,12 @@
 	ZEND_PARSE_PARAMETERS_END()
 #endif
 
+PHP_FUNCTION(pdotrace_log_file_path)
+{
+	ZEND_PARSE_PARAMETERS_NONE();
+
+	php_printf("%s\n", PDOTRACE_G(log_file_path));
+}
 
 /* {{{ PHP_RINIT_FUNCTION */
 PHP_RINIT_FUNCTION(pdotrace)
@@ -36,12 +51,28 @@ PHP_MINFO_FUNCTION(pdotrace)
 }
 /* }}} */
 
+/* Module globals initialization */
+static void php_pdotrace_init_globals(zend_pdotrace_globals *pdotrace_globals)
+{
+	pdotrace_globals->log_file_path = NULL;
+}
+
+/* Module initialization */
+PHP_MINIT_FUNCTION(pdotrace)
+{
+	ZEND_INIT_MODULE_GLOBALS(pdotrace, php_pdotrace_init_globals, NULL);
+	REGISTER_INI_ENTRIES();
+
+	return SUCCESS;
+}
+
+
 /* {{{ pdotrace_module_entry */
 zend_module_entry pdotrace_module_entry = {
 	STANDARD_MODULE_HEADER,
-	"pdotrace",					/* Extension name */
-	NULL,							/* zend_function_entry */
-	NULL,							/* PHP_MINIT - Module initialization */
+	PHP_PDOTRACE_EXTNAME,					/* Extension name */
+	ext_functions,					/* zend_function_entry */
+	PHP_MINIT(pdotrace),			/* PHP_MINIT - Module initialization */
 	NULL,							/* PHP_MSHUTDOWN - Module shutdown */
 	PHP_RINIT(pdotrace),			/* PHP_RINIT - Request initialization */
 	NULL,							/* PHP_RSHUTDOWN - Request shutdown */
