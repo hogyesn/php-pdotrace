@@ -1,0 +1,7 @@
+ARG_ENABLE('pdotrace', 'pdotrace support', 'no');
+
+if (PHP_PDOTRACE != 'no') {
+	AC_DEFINE('HAVE_PDOTRACE', 1, 'pdotrace support enabled');
+
+	EXTENSION('pdotrace', 'pdotrace.c', null, '/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1');
+}
