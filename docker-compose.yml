@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  php-extension-dev:
+    image: hogyesn/php-extension-dev:8.2.29
+    container_name: php-extension-dev-8.2.29
+    tty: true
+    volumes:
+      - ./php.ini:/usr/local/php-bin/DEBUG/etc/php.ini
+      - ./extensions:/extensions
