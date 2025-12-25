@@ -47,6 +47,11 @@ PHP_MINFO_FUNCTION(pdotrace)
 {
 	php_info_print_table_start();
 	php_info_print_table_header(2, "pdotrace support", "enabled");
+	php_info_print_table_row(
+		2,
+		"pdotrace.log_file_path",
+		PDOTRACE_G(log_file_path)
+	);
 	php_info_print_table_end();
 }
 /* }}} */
