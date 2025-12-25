@@ -70,6 +70,10 @@ PHP_MINIT_FUNCTION(pdotrace)
 	ZEND_INIT_MODULE_GLOBALS(pdotrace, php_pdotrace_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 
+	if (PDOTRACE_G(enabled)) {
+		pdotrace_register_observers();
+	}
+
 	return SUCCESS;
 }
 

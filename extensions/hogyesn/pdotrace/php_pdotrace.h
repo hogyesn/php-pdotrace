@@ -24,4 +24,7 @@ ZEND_EXTERN_MODULE_GLOBALS(pdotrace)
 ZEND_TSRMLS_CACHE_EXTERN()
 # endif
 
+/* Observer functions */
+void pdotrace_register_observers(void);
+
 #endif	/* PHP_PDOTRACE_H */

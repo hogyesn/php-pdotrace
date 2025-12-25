@@ -9,7 +9,7 @@ pdotrace.log_file_path=/extensions/tmp/pdotrace.log
 <?php
 	pdotrace_log_file_path();
 	echo ini_get('pdotrace.log_file_path') . PHP_EOL;
-	var_dump(ini_get('pdotrace.enabled'))
+	var_dump(ini_get('pdotrace.enabled'));
 ?>
 --EXPECT--
 /extensions/tmp/pdotrace.log
