@@ -2,6 +2,8 @@
 Check if pdotrace php.ini loaded
 --EXTENSIONS--
 pdotrace
+--INI--
+pdotrace.log_file_path=/extensions/tmp/pdotrace.log
 --FILE--
 <?php
 	pdotrace_log_file_path();
