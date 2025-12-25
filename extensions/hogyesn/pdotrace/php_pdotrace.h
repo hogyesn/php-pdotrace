@@ -11,6 +11,7 @@ extern zend_module_entry pdotrace_module_entry;
 
 /* Module globals */
 ZEND_BEGIN_MODULE_GLOBALS(pdotrace)
+	zend_bool enabled;
     char *log_file_path;
 ZEND_END_MODULE_GLOBALS(pdotrace)
 

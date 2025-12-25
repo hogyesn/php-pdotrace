@@ -14,6 +14,7 @@ ZEND_DECLARE_MODULE_GLOBALS(pdotrace)
 
 /* INI entries */
 PHP_INI_BEGIN()
+	STD_PHP_INI_BOOLEAN("pdotrace.enabled", "0", PHP_INI_SYSTEM, OnUpdateBool, enabled, zend_pdotrace_globals, pdotrace_globals)
     STD_PHP_INI_ENTRY("pdotrace.log_file_path", "/tmp/pdotrace.log", PHP_INI_SYSTEM, OnUpdateString, log_file_path, zend_pdotrace_globals, pdotrace_globals)
 PHP_INI_END()
 
@@ -59,6 +60,7 @@ PHP_MINFO_FUNCTION(pdotrace)
 /* Module globals initialization */
 static void php_pdotrace_init_globals(zend_pdotrace_globals *pdotrace_globals)
 {
+	pdotrace_globals->enabled = 0;
 	pdotrace_globals->log_file_path = NULL;
 }
 
@@ -75,14 +77,14 @@ PHP_MINIT_FUNCTION(pdotrace)
 /* {{{ pdotrace_module_entry */
 zend_module_entry pdotrace_module_entry = {
 	STANDARD_MODULE_HEADER,
-	PHP_PDOTRACE_EXTNAME,					/* Extension name */
+	PHP_PDOTRACE_EXTNAME,			/* Extension name */
 	ext_functions,					/* zend_function_entry */
 	PHP_MINIT(pdotrace),			/* PHP_MINIT - Module initialization */
 	NULL,							/* PHP_MSHUTDOWN - Module shutdown */
 	PHP_RINIT(pdotrace),			/* PHP_RINIT - Request initialization */
 	NULL,							/* PHP_RSHUTDOWN - Request shutdown */
 	PHP_MINFO(pdotrace),			/* PHP_MINFO - Module info */
-	PHP_PDOTRACE_VERSION,		/* Version */
+	PHP_PDOTRACE_VERSION,			/* Version */
 	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
