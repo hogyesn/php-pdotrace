@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "projects": {
+    "pdotrace": {
+      "path": "/extensions/hogyesn/pdotrace",
+      "build_mode": "debug",
+      "debug_port": 3333,
+      "created_at": "2026-01-16T08:31:41+00:00",
+      "last_built": "2026-01-18T14:01:25+00:00",
+      "debug_scripts": [
+        "debug.php",
+        "pdo_all.php"
+      ],
+      "last_debug_script": "pdo_all.php"
+    }
+  }
+}
