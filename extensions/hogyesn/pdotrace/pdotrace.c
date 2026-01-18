@@ -64,16 +64,30 @@ static void php_pdotrace_init_globals(zend_pdotrace_globals *pdotrace_globals)
 	pdotrace_globals->log_file_path = NULL;
 }
 
+FILE *pdotrace_log_fp = NULL;
 /* Module initialization */
 PHP_MINIT_FUNCTION(pdotrace)
 {
 	ZEND_INIT_MODULE_GLOBALS(pdotrace, php_pdotrace_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 
+	if (PDOTRACE_G(log_file_path)) {
+		pdotrace_log_fp = fopen(PDOTRACE_G(log_file_path), "a");
+	}
+
 	if (PDOTRACE_G(enabled)) {
 		pdotrace_register_observers();
 	}
 
+	return SUCCESS;
+}
+
+PHP_MSHUTDOWN_FUNCTION(pdotrace)
+{
+	if (pdotrace_log_fp) {
+		fclose(pdotrace_log_fp);
+		pdotrace_log_fp = NULL;
+	}
 	return SUCCESS;
 }
 
@@ -84,7 +98,7 @@ zend_module_entry pdotrace_module_entry = {
 	PHP_PDOTRACE_EXTNAME,			/* Extension name */
 	ext_functions,					/* zend_function_entry */
 	PHP_MINIT(pdotrace),			/* PHP_MINIT - Module initialization */
-	NULL,							/* PHP_MSHUTDOWN - Module shutdown */
+	PHP_MSHUTDOWN(pdotrace),		/* PHP_MSHUTDOWN - Module shutdown */
 	PHP_RINIT(pdotrace),			/* PHP_RINIT - Request initialization */
 	NULL,							/* PHP_RSHUTDOWN - Request shutdown */
 	PHP_MINFO(pdotrace),			/* PHP_MINFO - Module info */

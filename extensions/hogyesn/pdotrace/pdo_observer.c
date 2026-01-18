@@ -9,6 +9,10 @@ void pdotrace_observer_begin(zend_execute_data *execute_data)
 	if (!ZEND_OBSERVER_ENABLED) {
 		return;
 	}
+
+	if (!pdotrace_log_fp) {
+		return;
+	}
 }
 
 /* Observer end handler */

@@ -24,6 +24,8 @@ ZEND_EXTERN_MODULE_GLOBALS(pdotrace)
 ZEND_TSRMLS_CACHE_EXTERN()
 # endif
 
+extern FILE *pdotrace_log_fp;
+
 /* Observer functions */
 void pdotrace_register_observers(void);
 
