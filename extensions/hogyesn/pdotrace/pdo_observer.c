@@ -21,23 +21,70 @@ void pdotrace_observer_end(zend_execute_data *execute_data, zval *retval)
 	if (!ZEND_OBSERVER_ENABLED) {
 		return;
 	}
-	
-	if (PDOTRACE_G(log_file_path)) {
-		FILE *log_file = fopen(PDOTRACE_G(log_file_path), "a");
-		if (log_file) {
-			fprintf(log_file, "PDO function executed: %s\n", execute_data->func->common.function_name->val);
-			fclose(log_file);
-		} else {
-			php_error_docref(NULL, E_WARNING, "Failed to open log file: %s", PDOTRACE_G(log_file_path));
-		}
+
+	if (!pdotrace_log_fp) {
+		return;
 	}
+
+	zend_execute_data *frame = execute_data;
+	int depth = 0;
+
+	zend_function *func = frame->func;
+
+	if (!func) {
+		return;
+	}
+
+	const char *func_name = ZSTR_VAL(func->common.function_name);
+	const char *class_name = func->common.scope ? ZSTR_VAL(func->common.scope->name) : NULL;
+
+	if (!class_name || class_name && strcmp(class_name, "PDO") != 0) {
+		// Skip logging non-PDO frames
+		return;
+	}
+
+	fprintf(pdotrace_log_fp, "--------------------------\n");
+	fprintf(pdotrace_log_fp, "function executed: %s\n", func_name);
+
+	// Log call stack
+	while (frame && depth++ < 10) {
+		if (func->common.function_name) {
+			if (class_name) {
+				fprintf(pdotrace_log_fp, "Frame: %s::%s\n", class_name, func_name);
+			} else {
+				fprintf(pdotrace_log_fp, "Frame: %s\n", func_name);
+			}
+
+			int argc = ZEND_CALL_NUM_ARGS(frame);
+			for (int i = 0; i < argc; i++) {
+				zval *arg = ZEND_CALL_ARG(frame, i + 1);
+				if (arg && Z_TYPE_P(arg) != IS_UNDEF) {
+					zend_string *arg_str = zval_get_string(arg);
+					fprintf(pdotrace_log_fp, "  Arg[%d]: %s\n", i, ZSTR_VAL(arg_str));
+					zend_string_release(arg_str);
+				}
+			}
+		}
+
+		// prepare for next frame (which is the caller)
+		frame = frame->prev_execute_data;
+
+		if (!frame || !frame->func) {
+			break;
+		}
+
+		func = frame->func;
+		func_name = ZSTR_VAL(func->common.function_name);
+		class_name = func->common.scope ? ZSTR_VAL(func->common.scope->name) : NULL;
+	}
+	fprintf(pdotrace_log_fp, "--------------------------\n");
 }
 
 /* Observer initialization */
 zend_observer_fcall_handlers pdotrace_observer_init(zend_execute_data *execute_data)
 {
 	zend_observer_fcall_handlers handlers = {0};
-	
+
 	/* Only observe if extension is enabled */
 	if (!PDOTRACE_G(enabled)) {
 		return handlers;
