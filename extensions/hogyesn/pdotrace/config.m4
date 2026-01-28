@@ -90,5 +90,8 @@ if test "$PHP_PDOTRACE" != "no"; then
   dnl In case of no dependencies
   AC_DEFINE(HAVE_PDOTRACE, 1, [ Have pdotrace support ])
 
-  PHP_NEW_EXTENSION(pdotrace, pdotrace.c pdo_observer.c, $ext_shared)
+  PHP_NEW_EXTENSION(
+	pdotrace,
+	pdotrace.c pdo_observer.c logger/logger.c logger/file_logger.c logger/trace_event.c logger/json_formatter.c,
+	$ext_shared)
 fi

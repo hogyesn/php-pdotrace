@@ -1,0 +1,2 @@
+logger/logger.lo: /extensions/hogyesn/pdotrace/logger/logger.c \
+ /extensions/hogyesn/pdotrace/logger/logger.h
