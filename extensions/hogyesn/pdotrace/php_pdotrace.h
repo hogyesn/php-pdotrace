@@ -3,6 +3,8 @@
 #ifndef PHP_PDOTRACE_H
 # define PHP_PDOTRACE_H
 
+#include "logger/logger.h"
+
 extern zend_module_entry pdotrace_module_entry;
 # define phpext_pdotrace_ptr &pdotrace_module_entry
 
@@ -13,6 +15,7 @@ extern zend_module_entry pdotrace_module_entry;
 ZEND_BEGIN_MODULE_GLOBALS(pdotrace)
 	zend_bool enabled;
     char *log_file_path;
+	char *trace_id;
 ZEND_END_MODULE_GLOBALS(pdotrace)
 
 ZEND_EXTERN_MODULE_GLOBALS(pdotrace)
@@ -24,7 +27,7 @@ ZEND_EXTERN_MODULE_GLOBALS(pdotrace)
 ZEND_TSRMLS_CACHE_EXTERN()
 # endif
 
-extern FILE *pdotrace_log_fp;
+extern const logger_methods *file_logger_get_methods(void);
 
 /* Observer functions */
 void pdotrace_register_observers(void);

@@ -8,6 +8,8 @@
 #include "ext/standard/info.h"
 #include "php_pdotrace.h"
 #include "pdotrace_arginfo.h"
+#include "logger/logger.h"
+#include "logger/file_logger.h"
 
 /* Module globals */
 ZEND_DECLARE_MODULE_GLOBALS(pdotrace)
@@ -39,6 +41,11 @@ PHP_RINIT_FUNCTION(pdotrace)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
 
+	PDOTRACE_G(trace_id) = emalloc(33);
+	for (int i = 0; i < 16; i++) {
+		sprintf(PDOTRACE_G(trace_id) + i * 2, "%02x", (unsigned char) (rand() & 0xff));
+	}
+	PDOTRACE_G(trace_id)[32] = '\0';
 	return SUCCESS;
 }
 /* }}} */
@@ -62,31 +69,40 @@ static void php_pdotrace_init_globals(zend_pdotrace_globals *pdotrace_globals)
 {
 	pdotrace_globals->enabled = 0;
 	pdotrace_globals->log_file_path = NULL;
+	pdotrace_globals->trace_id = NULL;
 }
 
-FILE *pdotrace_log_fp = NULL;
 /* Module initialization */
 PHP_MINIT_FUNCTION(pdotrace)
 {
 	ZEND_INIT_MODULE_GLOBALS(pdotrace, php_pdotrace_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 
-	if (PDOTRACE_G(log_file_path)) {
-		pdotrace_log_fp = fopen(PDOTRACE_G(log_file_path), "a");
-	}
+	set_logger(file_logger_get_methods());
+	logger_init();
 
 	if (PDOTRACE_G(enabled)) {
 		pdotrace_register_observers();
 	}
+
+	srand((unsigned int) time(NULL) ^ getpid());
 
 	return SUCCESS;
 }
 
 PHP_MSHUTDOWN_FUNCTION(pdotrace)
 {
-	if (pdotrace_log_fp) {
-		fclose(pdotrace_log_fp);
-		pdotrace_log_fp = NULL;
+	logger_flush();
+	logger_shutdown();
+
+	return SUCCESS;
+}
+
+PHP_RSHUTDOWN_FUNCTION(pdotrace)
+{
+	if (PDOTRACE_G(trace_id)) {
+		efree(PDOTRACE_G(trace_id));
+		PDOTRACE_G(trace_id) = NULL;
 	}
 	return SUCCESS;
 }
@@ -100,7 +116,7 @@ zend_module_entry pdotrace_module_entry = {
 	PHP_MINIT(pdotrace),			/* PHP_MINIT - Module initialization */
 	PHP_MSHUTDOWN(pdotrace),		/* PHP_MSHUTDOWN - Module shutdown */
 	PHP_RINIT(pdotrace),			/* PHP_RINIT - Request initialization */
-	NULL,							/* PHP_RSHUTDOWN - Request shutdown */
+	PHP_RSHUTDOWN(pdotrace),		/* PHP_RSHUTDOWN - Request shutdown */
 	PHP_MINFO(pdotrace),			/* PHP_MINFO - Module info */
 	PHP_PDOTRACE_VERSION,			/* Version */
 	STANDARD_MODULE_PROPERTIES
