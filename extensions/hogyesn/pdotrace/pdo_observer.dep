@@ -86,4 +86,8 @@ pdo_observer.lo: /extensions/hogyesn/pdotrace/pdo_observer.c \
  /usr/local/php-bin/DEBUG/include/php/Zend/zend_observer.h \
  /usr/local/php-bin/DEBUG/include/php/Zend/zend_fibers.h \
  /usr/local/php-bin/DEBUG/include/php/Zend/zend_API.h \
- /extensions/hogyesn/pdotrace/php_pdotrace.h
+ /extensions/hogyesn/pdotrace/php_pdotrace.h \
+ /extensions/hogyesn/pdotrace/logger/logger.h \
+ /extensions/hogyesn/pdotrace/logger/trace_event.h \
+ /extensions/hogyesn/pdotrace/logger/formatter.h \
+ /extensions/hogyesn/pdotrace/logger/trace_event.h

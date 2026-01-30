@@ -10,6 +10,7 @@
 #include "pdotrace_arginfo.h"
 #include "logger/logger.h"
 #include "logger/file_logger.h"
+#include "logger/trace_event.h"
 
 /* Module globals */
 ZEND_DECLARE_MODULE_GLOBALS(pdotrace)
@@ -104,6 +105,12 @@ PHP_RSHUTDOWN_FUNCTION(pdotrace)
 		efree(PDOTRACE_G(trace_id));
 		PDOTRACE_G(trace_id) = NULL;
 	}
+
+	if (prepared_event) {
+		free_trace_event(prepared_event);
+		prepared_event = NULL;
+	}
+
 	return SUCCESS;
 }
 

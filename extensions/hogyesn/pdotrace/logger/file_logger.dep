@@ -84,4 +84,4 @@ logger/file_logger.lo: /extensions/hogyesn/pdotrace/logger/file_logger.c \
  /usr/local/php-bin/DEBUG/include/php/TSRM/TSRM.h \
  /usr/local/php-bin/DEBUG/include/php/Zend/zend_constants.h \
  /usr/local/php-bin/DEBUG/include/php/main/php_reentrancy.h \
- php_pdotrace.h logger/logger.h
+ php_pdotrace.h logger/logger.h logger/trace_event.h
