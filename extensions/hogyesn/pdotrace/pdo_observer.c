@@ -80,24 +80,6 @@ void pdotrace_observer_end(zend_execute_data *execute_data, zval *retval)
 	event.timestamp = (zend_long)time(NULL);
 	event.runtime = (double)(end_time - begin_time) / 1000000.0;
 
-	if (prepared_event) {
-		event.query = prepared_event->query ? estrdup(prepared_event->query) : NULL;
-	}
-
-	if (strcmp(func_name, "prepare") == 0) {
-		if (prepared_event) {
-			free_trace_event(prepared_event);
-		}
-
-		prepared_event = emalloc(sizeof(trace_event));
-		prepared_event->trace_id = estrdup(event.trace_id);
-		prepared_event->endpoint = estrdup(event.endpoint);
-		prepared_event->runtime = 0;
-		prepared_event->timestamp = event.timestamp;
-		prepared_event->query = NULL;
-		prepared_event->callstack = NULL;
-		prepared_event->callstack_size = 0;
-	}
 
 	function_call callstack[10];
 	size_t callstack_size = 0;
@@ -117,12 +99,10 @@ void pdotrace_observer_end(zend_execute_data *execute_data, zval *retval)
 				fc->file = estrdup(ZSTR_VAL(frame->prev_execute_data->func->op_array.filename));
 			}
 
-
 			// Extract query from PDO methods
 			if (
 				strcmp(func_name, "query") == 0 ||
-				strcmp(func_name, "exec") == 0 ||
-				strcmp(func_name, "prepare") == 0
+				strcmp(func_name, "exec") == 0
 			) {
 				int argc = ZEND_CALL_NUM_ARGS(frame);
 				for (int i = 0; i < argc; i++) {
@@ -138,26 +118,12 @@ void pdotrace_observer_end(zend_execute_data *execute_data, zval *retval)
 				}
 			}
 
-			// don't log prepared event yet, wait for execute
-			if (strcmp(func_name, "prepare") == 0) {
-				prepared_event->query = event.query ? estrdup(event.query) : NULL;
-				free_trace_event(&event);
-				return;
-			}
-
-
-			if (prepared_event && (strcmp(func_name, "bindParam") == 0 || strcmp(func_name, "bindValue") == 0)) {
-				// todo
-				// write to bound params in prepared_event
-				// have to be refactored using hooks
-		
-				free_trace_event(&event);
-				return;
-			}
-
 			// if executing a prepared statement, free prepared_event
-			if (prepared_event && strcmp(func_name, "execute") == 0) {
+			if (strcmp(func_name, "execute") == 0 && prepared_event) {
+				event.query = prepared_event->query ? estrdup(prepared_event->query) : NULL;
+				event.params = prepared_event->params ? zend_array_dup(prepared_event->params) : NULL;
 				free_trace_event(prepared_event);
+				efree(prepared_event);
 				prepared_event = NULL;
 			}
 		}

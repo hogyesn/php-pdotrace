@@ -15,8 +15,7 @@ typedef struct {
 	char *endpoint;
 
 	char *query;
-	// char **bound_params;
-	// size_t bound_param_count;
+	HashTable *params;
 
 	function_call *callstack;
 	size_t callstack_size;

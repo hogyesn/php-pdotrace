@@ -29,7 +29,11 @@ ZEND_TSRMLS_CACHE_EXTERN()
 # endif
 
 extern const logger_methods *file_logger_get_methods(void);
-ZEND_TLS trace_event *prepared_event = NULL;
+#ifdef ZTS
+extern __thread trace_event *prepared_event;
+#else
+extern trace_event *prepared_event;
+#endif
 
 /* Observer functions */
 void pdotrace_register_observers(void);

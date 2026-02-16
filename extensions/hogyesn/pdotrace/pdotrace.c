@@ -8,6 +8,7 @@
 #include "ext/standard/info.h"
 #include "php_pdotrace.h"
 #include "pdotrace_arginfo.h"
+#include "pdo/php_pdo_driver.h"
 #include "logger/logger.h"
 #include "logger/file_logger.h"
 #include "logger/trace_event.h"
@@ -33,6 +34,48 @@ PHP_FUNCTION(pdotrace_log_file_path)
 	ZEND_PARSE_PARAMETERS_NONE();
 
 	php_printf("%s\n", PDOTRACE_G(log_file_path));
+}
+
+// PDO Hook
+
+// pointer to original PDOStatement execute function
+static zif_handler orig_pdo_stmt_execute_handler = NULL;
+
+#ifdef ZTS
+__thread trace_event *prepared_event = NULL;
+#else
+trace_event *prepared_event = NULL;
+#endif
+
+// our hooked version of pdo_stmt_execute
+ZEND_NAMED_FUNCTION(pdotrace_pdo_stmt_execute_handler)
+{
+	if (!PDOTRACE_G(enabled)) {
+		// call original handler if not enabled
+		orig_pdo_stmt_execute_handler(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+		return;
+	}
+
+	pdo_stmt_t *stmt = Z_PDO_STMT_P(getThis());
+	
+	if (prepared_event) {
+		free_trace_event(prepared_event);
+		efree(prepared_event);
+		prepared_event = NULL;
+	}
+
+	prepared_event = emalloc(sizeof(trace_event));
+	memset(prepared_event, 0, sizeof(trace_event));
+	prepared_event->query = estrdup(ZSTR_VAL(stmt->query_string));
+	
+	
+	// copy bound parameters
+	if (stmt->bound_params) {
+		prepared_event->params = zend_array_dup(stmt->bound_params);
+	}
+
+	// call original handler
+	orig_pdo_stmt_execute_handler(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
 /* {{{ PHP_RINIT_FUNCTION */
@@ -87,6 +130,23 @@ PHP_MINIT_FUNCTION(pdotrace)
 	}
 
 	srand((unsigned int) time(NULL) ^ getpid());
+
+	// Hook PDO statement execute
+	
+	zend_class_entry *pdo_stmt_ce = zend_hash_str_find_ptr(CG(class_table), "pdostatement", sizeof("pdostatement")-1);
+	if (pdo_stmt_ce) {
+		zend_function *original = zend_hash_str_find_ptr(
+			&pdo_stmt_ce->function_table, "execute", sizeof("execute") - 1
+		);
+		
+		if (original && !orig_pdo_stmt_execute_handler) {
+			// store pointer to original function
+			orig_pdo_stmt_execute_handler = original->internal_function.handler;
+			
+			// replace the handler pointer directly
+			original->internal_function.handler = pdotrace_pdo_stmt_execute_handler;
+		}
+	}
 
 	return SUCCESS;
 }

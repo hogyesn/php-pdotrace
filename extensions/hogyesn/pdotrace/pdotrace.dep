@@ -89,5 +89,8 @@ pdotrace.lo: /extensions/hogyesn/pdotrace/pdotrace.c \
  /extensions/hogyesn/pdotrace/logger/logger.h \
  /extensions/hogyesn/pdotrace/logger/trace_event.h \
  /extensions/hogyesn/pdotrace/pdotrace_arginfo.h \
+ /usr/local/php-bin/DEBUG/include/php/ext/pdo/php_pdo_driver.h \
+ /usr/local/php-bin/DEBUG/include/php/ext/pdo/php_pdo.h \
+ /usr/local/php-bin/DEBUG/include/php/main/php_version.h \
  /extensions/hogyesn/pdotrace/logger/file_logger.h \
  /extensions/hogyesn/pdotrace/logger/logger.h
