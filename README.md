@@ -71,7 +71,7 @@ pdotrace.log_file_path=/tmp/pdotrace.log
 
 ### Short-term
 - [ ] Fix memory leaks
-- [ ] Handle bound params via `stmt_execute` hook
+- [x] Handle bound params via `stmt_execute` hook
 - [ ] Detect CLI/request entrypoint name (path + params)
 
 ### Future
