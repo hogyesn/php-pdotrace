@@ -56,6 +56,9 @@ ZEND_NAMED_FUNCTION(pdotrace_pdo_stmt_execute_handler)
 		return;
 	}
 
+	// call original handler FIRST to ensure bound parameters are updated
+	orig_pdo_stmt_execute_handler(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+
 	pdo_stmt_t *stmt = Z_PDO_STMT_P(getThis());
 	
 	if (prepared_event) {
@@ -67,15 +70,35 @@ ZEND_NAMED_FUNCTION(pdotrace_pdo_stmt_execute_handler)
 	prepared_event = emalloc(sizeof(trace_event));
 	memset(prepared_event, 0, sizeof(trace_event));
 	prepared_event->query = estrdup(ZSTR_VAL(stmt->query_string));
-	
-	
-	// copy bound parameters
-	if (stmt->bound_params) {
-		prepared_event->params = zend_array_dup(stmt->bound_params);
-	}
 
-	// call original handler
-	orig_pdo_stmt_execute_handler(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+	// deep copy bound parameters and dereference
+	if (stmt->bound_params) {
+		prepared_event->params = emalloc(sizeof(HashTable));
+		zend_hash_init(prepared_event->params, zend_hash_num_elements(stmt->bound_params), NULL, ZVAL_PTR_DTOR, 0);
+
+		zend_string *key;
+		zval *entry;
+		ZEND_HASH_FOREACH_STR_KEY_VAL(stmt->bound_params, key, entry) {
+			zval copy;
+
+			if (Z_TYPE_P(entry) == IS_PTR) {
+				struct pdo_bound_param_data *param = (struct pdo_bound_param_data *)Z_PTR_P(entry);
+				zval *param_val = &param->parameter;
+				// dereference in case of bindParam (IS_REFERENCE)
+				ZVAL_DEREF(param_val);
+				ZVAL_COPY(&copy, param_val);
+			} else {
+				zval *val = entry;
+				ZVAL_COPY(&copy, val);
+			}
+
+			if (key) {
+				zend_hash_update(prepared_event->params, key, &copy);
+			} else {
+				zend_hash_next_index_insert(prepared_event->params, &copy);
+			}
+		} ZEND_HASH_FOREACH_END();
+	}
 }
 
 /* {{{ PHP_RINIT_FUNCTION */

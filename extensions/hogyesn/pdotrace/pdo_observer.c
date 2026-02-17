@@ -121,7 +121,10 @@ void pdotrace_observer_end(zend_execute_data *execute_data, zval *retval)
 			// if executing a prepared statement, free prepared_event
 			if (strcmp(func_name, "execute") == 0 && prepared_event) {
 				event.query = prepared_event->query ? estrdup(prepared_event->query) : NULL;
-				event.params = prepared_event->params ? zend_array_dup(prepared_event->params) : NULL;
+				if (prepared_event->params) {
+					event.params = prepared_event->params;
+					prepared_event->params = NULL; // prevent free_trace_event from destroying it
+				}
 				free_trace_event(prepared_event);
 				efree(prepared_event);
 				prepared_event = NULL;
